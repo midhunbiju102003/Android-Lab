@@ -1,0 +1,159 @@
+XML FILE:
+
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/ed1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Num 1"
+            android:inputType="numberDecimal" />
+
+        <EditText
+            android:id="@+id/ed2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Num 2"
+            android:inputType="numberDecimal" />
+    </LinearLayout>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add"
+        android:onClick="Add" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Subtract"
+        android:onClick="Sub" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Multiply"
+        android:onClick="Mul" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Divide"
+        android:onClick="Div" />
+
+    <Button
+        android:id="@+id/clearButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Clear"
+        android:onClick="Clear" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Result: "
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tv1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="18sp" />
+    </LinearLayout>
+</LinearLayout>
+
+JAVA FILE:
+
+package com.example.simplecalculator;
+
+import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.TextView;
+
+public class MainActivity extends AppCompatActivity {
+    EditText ed1, ed2;
+    TextView tv1;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        ed1 = findViewById(R.id.ed1);
+        ed2 = findViewById(R.id.ed2);
+        tv1 = findViewById(R.id.tv1);
+    }
+
+    public void Clear(View view) {
+        ed1.setText("");
+        ed2.setText("");
+        tv1.setText("");
+    }
+
+    public void Add(View view) {
+        try {
+            double num1 = Double.parseDouble(ed1.getText().toString());
+            double num2 = Double.parseDouble(ed2.getText().toString());
+            double result = num1 + num2;
+            tv1.setText(String.valueOf(result));
+        } catch (NumberFormatException e) {
+            tv1.setText("Result: Invalid input");
+        }
+    }
+
+    public void Sub(View view) {
+        try {
+            double num1 = Double.parseDouble(ed1.getText().toString());
+            double num2 = Double.parseDouble(ed2.getText().toString());
+            double result = num1 - num2;
+            tv1.setText(String.valueOf(result));
+        } catch (NumberFormatException e) {
+            tv1.setText("Result: Invalid input");
+        }
+    }
+
+    public void Mul(View view) {
+        try {
+            double num1 = Double.parseDouble(ed1.getText().toString());
+            double num2 = Double.parseDouble(ed2.getText().toString());
+            double result = num1 * num2;
+            tv1.setText(String.valueOf(result));
+        } catch (NumberFormatException e) {
+            tv1.setText("Result: Invalid input");
+        }
+    }
+
+    public void Div(View view) {
+        try {
+            double num1 = Double.parseDouble(ed1.getText().toString());
+            double num2 = Double.parseDouble(ed2.getText().toString());
+            if (num2 == 0) {
+                tv1.setText("Result: Division by zero");
+            } else {
+                double result = num1 / num2;
+                tv1.setText(String.valueOf(result));
+            }
+        } catch (NumberFormatException e) {
+            tv1.setText("Result: Invalid input");
+        }
+    }
+}
