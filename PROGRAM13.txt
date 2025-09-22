@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/editTextName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Name" />
+
+    <EditText
+        android:id="@+id/editTextAge"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Age"
+        android:inputType="number" />
+
+    <EditText
+        android:id="@+id/editTextMark"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter Mark"
+        android:inputType="number" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp">
+
+        <Button
+            android:id="@+id/buttonInsert"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Insert Data" />
+
+        <Button
+            android:id="@+id/buttonSelect"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Select Data" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textViewData"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="User Data will appear here"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp" />
+</LinearLayout>
+
+
+package com.example.myapplication;
+
+import android.database.Cursor;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+
+    private DatabaseHelper db;
+    private EditText editTextName, editTextAge, editTextMark;
+    private TextView textViewData;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        db = new DatabaseHelper(this);
+
+        editTextName = findViewById(R.id.editTextName);
+        editTextAge = findViewById(R.id.editTextAge);
+        editTextMark = findViewById(R.id.editTextMark);
+        textViewData = findViewById(R.id.textViewData);
+        Button buttonInsert = findViewById(R.id.buttonInsert);
+        Button buttonSelect = findViewById(R.id.buttonSelect);
+
+        buttonInsert.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = editTextName.getText().toString().trim();
+                String ageStr = editTextAge.getText().toString().trim();
+                String markStr = editTextMark.getText().toString().trim();
+
+                if (name.isEmpty() || ageStr.isEmpty() || markStr.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                int age, mark;
+                try {
+                    age = Integer.parseInt(ageStr);
+                    mark = Integer.parseInt(markStr);
+                } catch (NumberFormatException e) {
+                    Toast.makeText(MainActivity.this, "Enter valid numbers for Age and Mark", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                boolean inserted = db.insertUser(name, age, mark);
+                if (inserted) {
+                    Toast.makeText(MainActivity.this, "Data Inserted", Toast.LENGTH_SHORT).show();
+                    clearInputs();
+                    displayData();
+                } else {
+                    Toast.makeText(MainActivity.this, "Insert Failed", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        buttonSelect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                displayData();
+            }
+        });
+    }
+
+    private void displayData() {
+        Cursor cursor = db.getAllUsers();
+        if (cursor.getCount() == 0) {
+            textViewData.setText("No data found");
+            return;
+        }
+
+        StringBuilder data = new StringBuilder();
+        while (cursor.moveToNext()) {
+            data.append("ID: ").append(cursor.getInt(0))
+                    .append(", Name: ").append(cursor.getString(1))
+                    .append(", Age: ").append(cursor.getInt(2))
+                    .append(", Mark: ").append(cursor.getInt(3))
+                    .append("\n");
+        }
+        cursor.close();
+        textViewData.setText(data.toString());
+    }
+
+    private void clearInputs() {
+        editTextName.setText("");
+        editTextAge.setText("");
+        editTextMark.setText("");
+    }
+}
+
+
+
+package com.example.myapplication;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+public class DatabaseHelper extends SQLiteOpenHelper {
+
+    private static final String DATABASE_NAME = "UserDatabase.db";
+    private static final int DATABASE_VERSION = 1;
+
+    private static final String TABLE_NAME = "UserTable";
+    private static final String COL_ID = "ID";
+    private static final String COL_NAME = "NAME";
+    private static final String COL_AGE = "AGE";
+    private static final String COL_MARK = "MARK";
+
+    public DatabaseHelper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        String createTable = "CREATE TABLE " + TABLE_NAME + " (" +
+                COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COL_NAME + " TEXT, " +
+                COL_AGE + " INTEGER, " +
+                COL_MARK + " INTEGER)";
+        db.execSQL(createTable);
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+        onCreate(db);
+    }
+
+    public boolean insertUser(String name, int age, int mark) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+
+        values.put(COL_NAME, name);
+        values.put(COL_AGE, age);
+        values.put(COL_MARK, mark);
+
+        long result = db.insert(TABLE_NAME, null, values);
+        return result != -1;
+    }
+
+    public Cursor getAllUsers() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM " + TABLE_NAME, null);
+    }
+}
